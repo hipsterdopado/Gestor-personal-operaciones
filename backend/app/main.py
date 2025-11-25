@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 
 from .database import Base, engine
-from .models import employee  # importa modelos para que se creen las tablas
+from .models import employee, time_entry, absence  
 from .routers import auth_router, employees_router
 from .routers import time_entries_router 
+from .routers import absences_router 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Gestor de Personal y Operaciones de Campo")
@@ -15,7 +16,8 @@ def create_app() -> FastAPI:
     app.include_router(auth_router.router, prefix="/api")
     app.include_router(employees_router.router, prefix="/api")
     app.include_router(time_entries_router.router, prefix="/api")
-
+    app.include_router(absences_router.router, prefix="/api") 
+    
     return app
 
 
