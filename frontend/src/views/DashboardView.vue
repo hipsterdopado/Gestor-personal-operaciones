@@ -128,7 +128,7 @@
             <textarea
               v-model="newAbsenceReason"
               rows="3"
-              placeholder="Añade algún detalle si es necesario"
+              :placeholder="t('absence.form.placeholder.reason')"
             />
           </label>
 
@@ -311,12 +311,10 @@ async function onCreateAbsence() {
     newAbsenceEnd.value = "";
     newAbsenceReason.value = "";
 
-    // limpiar motivo (las fechas las dejamos por si repite)
-    newAbsenceReason.value = "";
   } catch (err) {
     console.error(err);
     createAbsenceError.value =
-      err?.response?.data?.detail || "No se ha podido crear la ausencia.";
+        err?.response?.data?.detail || t("absence.form.error");
   } finally {
     creatingAbsence.value = false;
   }
