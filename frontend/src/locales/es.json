@@ -1,0 +1,25 @@
+{
+  "absence": {
+    "type": {
+      "vacation": "Vacaciones",
+      "sick": "Asistencia médica",
+      "other": "Otros"
+    },
+    "form": {
+      "title": "Crear solicitud de ausencia",
+      "field": {
+        "type": "Tipo",
+        "from": "Desde",
+        "to": "Hasta",
+        "reason": "Motivo (opcional)"
+      },
+      "placeholder": {
+        "reason": "Añade algún detalle si es necesario"
+      },
+      "submit": "Enviar solicitud",
+      "submitting": "Enviando...",
+      "success": "Solicitud creada correctamente.",
+      "error": "No se ha podido crear la ausencia."
+    }
+  }
+}

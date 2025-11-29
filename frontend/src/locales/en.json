@@ -1,0 +1,25 @@
+{
+  "absence": {
+    "type": {
+      "vacation": "Vacation",
+      "sick": "Medical appointment",
+      "other": "Other"
+    },
+    "form": {
+      "title": "Create absence request",
+      "field": {
+        "type": "Type",
+        "from": "From",
+        "to": "To",
+        "reason": "Reason (optional)"
+      },
+      "placeholder": {
+        "reason": "Add any extra details if needed"
+      },
+      "submit": "Send request",
+      "submitting": "Sending...",
+      "success": "Request created successfully.",
+      "error": "Could not create absence."
+    }
+  }
+}

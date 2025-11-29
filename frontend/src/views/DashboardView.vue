@@ -1,4 +1,3 @@
-<!-- src/views/DashboardView.vue -->
 <template>
   <div class="dashboard">
     <header class="top-bar">
@@ -98,6 +97,54 @@
         </table>
       </article>
 
+      <!-- Crear nueva ausencia -->
+      <article class="card">
+        <h2>{{ t("absence.form.title") }}</h2>
+
+        <form class="absence-form" @submit.prevent="onCreateAbsence">
+          <label>
+            {{ t("absence.form.field.type") }}
+            <select v-model="newAbsenceType">
+              <option value="vacation">{{ t("absence.type.vacation") }}</option>
+              <option value="sick">{{ t("absence.type.sick") }}</option>
+              <option value="other">{{ t("absence.type.other") }}</option>
+            </select>
+          </label>
+
+          <div class="dates-row">
+            <label>
+              {{ t("absence.form.field.from") }}
+              <input v-model="newAbsenceStart" type="date" required />
+            </label>
+
+            <label>
+              {{ t("absence.form.field.to") }}
+              <input v-model="newAbsenceEnd" type="date" required />
+            </label>
+          </div>
+
+          <label>
+            {{ t("absence.form.field.reason") }}
+            <textarea
+              v-model="newAbsenceReason"
+              rows="3"
+              :placeholder="t('absence.form.placeholder.reason')"
+            />
+          </label>
+
+          <button type="submit" class="primary" :disabled="creatingAbsence">
+            {{ creatingAbsence ? t("absence.form.submitting") : t("absence.form.submit") }}
+          </button>
+
+          <p v-if="createAbsenceError" class="error">
+            {{ createAbsenceError }}
+          </p>
+          <p v-if="createAbsenceSuccess" class="success">
+            {{ createAbsenceSuccess }}
+          </p>
+        </form>
+      </article>
+
       <!-- Mis ausencias -->
       <article class="card full">
         <h2>Mis solicitudes de ausencia</h2>
@@ -118,7 +165,7 @@
           </thead>
           <tbody>
             <tr v-for="absence in absences" :key="absence.id">
-              <td>{{ absence.type }}</td>
+              <td>{{ t(`absence.type.${absence.type}`) }}</td>
               <td>{{ formatDate(absence.start_date) }}</td>
               <td>{{ formatDate(absence.end_date) }}</td>
               <td>
@@ -143,7 +190,10 @@ import {
   clockIn,
   clockOut,
 } from "../services/timeEntriesService";
-import { fetchMyAbsences } from "../services/absenceService";
+import { fetchMyAbsences, createAbsenceRequest } from "../services/absenceService";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -160,6 +210,14 @@ const loadingAbsences = ref(false);
 const actionLoading = ref(false);
 const actionType = ref(null); // "in" | "out"
 const actionError = ref("");
+
+const newAbsenceType = ref("vacation");
+const newAbsenceStart = ref("");
+const newAbsenceEnd = ref("");
+const newAbsenceReason = ref("");
+const creatingAbsence = ref(false);
+const createAbsenceError = ref("");
+const createAbsenceSuccess = ref("");
 
 // Derivados
 const openEntry = computed(() =>
@@ -223,6 +281,42 @@ async function loadAbsences() {
     console.error("Error cargando ausencias", err);
   } finally {
     loadingAbsences.value = false;
+  }
+}
+
+async function onCreateAbsence() {
+  createAbsenceError.value = "";
+  createAbsenceSuccess.value = "";
+  creatingAbsence.value = true;
+
+  try {
+    if (!newAbsenceStart.value || !newAbsenceEnd.value) {
+      throw new Error("Debes indicar fecha de inicio y fin.");
+    }
+
+    const payload = {
+      type: newAbsenceType.value,
+      start_date: newAbsenceStart.value,
+      end_date: newAbsenceEnd.value,
+      reason: newAbsenceReason.value || null,
+    };
+
+    await createAbsenceRequest(payload);
+    createAbsenceSuccess.value = "Solicitud creada correctamente.";
+    // recargar lista de ausencias
+    await loadAbsences();
+    // limpiar formulario
+    newAbsenceType.value = "vacation";
+    newAbsenceStart.value = "";
+    newAbsenceEnd.value = "";
+    newAbsenceReason.value = "";
+
+  } catch (err) {
+    console.error(err);
+    createAbsenceError.value =
+        err?.response?.data?.detail || t("absence.form.error");
+  } finally {
+    creatingAbsence.value = false;
   }
 }
 
@@ -434,4 +528,56 @@ button:disabled {
     padding: 1rem;
   }
 }
+
+.absence-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.absence-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+.absence-form input,
+.absence-form select,
+.absence-form textarea {
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+}
+
+.absence-form input:focus,
+.absence-form select:focus,
+.absence-form textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.dates-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .dates-row {
+    flex-direction: column;
+  }
+}
+
+.success {
+  margin-top: 0.4rem;
+  color: #4ade80;
+  font-size: 0.8rem;
+}
+
 </style>
+
