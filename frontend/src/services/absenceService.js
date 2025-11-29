@@ -19,3 +19,18 @@ export async function fetchMyAbsences() {
   );
   return response.data; // array de ausencias
 }
+
+export async function createAbsenceRequest(payload) {
+  // payload: { type, start_date, end_date, reason }
+  const response = await axios.post(
+    `${API_BASE_URL}/api/absence-requests/`,
+    payload,
+    {
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  return response.data;
+}
