@@ -1,0 +1,36 @@
+// Colores base
+$color-bg-body: #020617;
+$color-text-main: #e5e7eb;
+$color-text-muted: #9ca3af;
+
+$color-primary: #3b82f6;
+$color-primary-hover: #2563eb;
+
+$color-border-soft: #1f2937;
+$color-surface: #020617;
+
+$color-pill-open-bg: rgba(34, 197, 94, 0.15);
+$color-pill-open-text: #4ade80;
+$color-pill-closed-bg: rgba(148, 163, 184, 0.15);
+$color-pill-closed-text: #e5e7eb;
+
+$color-pill-pending-bg: rgba(234, 179, 8, 0.15);
+$color-pill-pending-text: #facc15;
+$color-pill-approved-bg: rgba(34, 197, 94, 0.15);
+$color-pill-approved-text: #4ade80;
+$color-pill-rejected-bg: rgba(248, 113, 113, 0.15);
+$color-pill-rejected-text: #fca5a5;
+
+$color-error: #fca5a5;
+$color-success: #4ade80;
+
+// Tipografía
+$font-family-base: system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+// Espaciados
+$radius-card: 1rem;
+$radius-pill: 999px;
+$radius-input: 0.5rem;
+
+// Sombras
+$shadow-card: 0 10px 30px rgba(15, 23, 42, 0.7);

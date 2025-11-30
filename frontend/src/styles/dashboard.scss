@@ -1,0 +1,218 @@
+// src/styles/dashboard.scss
+@use "./variables" as *;
+
+.dashboard {
+  min-height: 100vh;
+  padding: 1.5rem 2rem;
+  background: $color-bg-body;
+  color: $color-text-main;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.subtitle {
+  margin-top: 0.25rem;
+  color: $color-text-muted;
+  font-size: 0.9rem;
+}
+
+.logout-btn {
+  padding: 0.45rem 0.9rem;
+  border-radius: $radius-pill;
+  border: 1px solid #4b5563;
+  background: transparent;
+  color: $color-text-main;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.logout-btn:hover {
+  background: #111827;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: $color-surface;
+  border-radius: $radius-card;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid $color-border-soft;
+  box-shadow: $shadow-card;
+}
+
+.card.full {
+  grid-column: 1 / -1;
+}
+
+.card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.status-text {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.small {
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+button.primary,
+button.secondary {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.7rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+button.primary {
+  background: $color-primary;
+  color: white;
+}
+
+button.secondary {
+  background: #111827;
+  color: $color-text-main;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  margin-top: 0.5rem;
+  color: $color-error;
+  font-size: 0.85rem;
+}
+
+.success {
+  margin-top: 0.4rem;
+  color: $color-success;
+  font-size: 0.8rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.4rem 0.3rem;
+  border-bottom: 1px solid #111827;
+}
+
+.data-table th {
+  text-align: left;
+  color: $color-text-muted;
+  font-weight: 500;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+}
+
+.pill.open {
+  background: $color-pill-open-bg;
+  color: $color-pill-open-text;
+}
+
+.pill.closed {
+  background: $color-pill-closed-bg;
+  color: $color-pill-closed-text;
+}
+
+.pill.pending {
+  background: $color-pill-pending-bg;
+  color: $color-pill-pending-text;
+}
+
+.pill.approved {
+  background: $color-pill-approved-bg;
+  color: $color-pill-approved-text;
+}
+
+.pill.rejected {
+  background: $color-pill-rejected-bg;
+  color: $color-pill-rejected-text;
+}
+
+@media (max-width: 640px) {
+  .dashboard {
+    padding: 1rem;
+  }
+}
+
+/* Formulario de ausencias */
+
+.absence-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.absence-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+.absence-form input,
+.absence-form select,
+.absence-form textarea {
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: $radius-input;
+  border: 1px solid $color-border-soft;
+  background: $color-bg-body;
+  color: $color-text-main;
+  font-size: 0.9rem;
+}
+
+.absence-form input:focus,
+.absence-form select:focus,
+.absence-form textarea:focus {
+  outline: none;
+  border-color: $color-primary;
+}
+
+.dates-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .dates-row {
+    flex-direction: column;
+  }
+}
