@@ -1,0 +1,50 @@
+// src/styles/global.scss
+@use "./variables" as *;
+
+:root {
+  font-family: $font-family-base;
+  line-height: 1.5;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  color-scheme: dark;
+  color: $color-text-main;
+  background-color: $color-bg-body;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: $color-bg-body;
+  color: $color-text-main;
+}
+
+/* Quitamos el centrado y el max-width de Vite */
+#app {
+  min-height: 100vh;
+}
+
+/* Botones base (el estilo fuerte va en .primary / .secondary) */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Focus accesible */
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
