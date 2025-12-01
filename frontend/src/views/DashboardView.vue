@@ -47,6 +47,12 @@
             {{ lastEntry.clock_out ? formatDateTime(lastEntry.clock_out) : "—" }}
 
           </p>
+
+          <p class="small">
+            Horas trabajadas (últimos 7 días):
+            <br />
+            <strong>{{ formatHours(totalHoursLast7Days) }}</strong>
+          </p>
         </template>
 
         <div class="actions">
@@ -272,6 +278,44 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString("es-ES", {
     dateStyle: "short",
   });
+}
+
+const totalHoursLast7Days = computed(() => {
+  if (!timeEntries.value || timeEntries.value.length === 0) return 0;
+
+  const now = new Date();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(now.getDate() - 7);
+
+  let totalMs = 0;
+
+  for (const entry of timeEntries.value) {
+    if (!entry.clock_in) continue;
+
+    const start = new Date(entry.clock_in);
+    if (start < sevenDaysAgo) continue;
+
+    const end = entry.clock_out ? new Date(entry.clock_out) : now;
+    const diff = end.getTime() - start.getTime();
+
+    if (diff > 0) {
+      totalMs += diff;
+    }
+  }
+
+  return totalMs / (1000 * 60 * 60); 
+});
+
+function formatHours(hours) {
+  if (!Number.isFinite(hours) || hours <= 0) return "0 h";
+
+  const rounded = Math.round(hours * 100) / 100;
+  return (
+    rounded.toLocaleString("es-ES", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }) + " h"
+  );
 }
 
 function humanStatus(status) {
