@@ -41,10 +41,11 @@
             Último fichaje:
             <br />
             <strong>Entrada:</strong>
-            {{ formatDate(lastEntry.clock_in) }}
+            {{ formatDateTime(lastEntry.clock_in) }}
             <br />
             <strong>Salida:</strong>
-            {{ lastEntry.clock_out ? formatDate(lastEntry.clock_out) : "—" }}
+            {{ lastEntry.clock_out ? formatDateTime(lastEntry.clock_out) : "—" }}
+
           </p>
         </template>
 
@@ -87,9 +88,9 @@
           </thead>
           <tbody>
             <tr v-for="entry in timeEntries.slice(0, 5)" :key="entry.id">
-              <td>{{ formatDate(entry.clock_in) }}</td>
+              <td>{{ formatDateTime(entry.clock_in) }}</td>
               <td>
-                {{ entry.clock_out ? formatDate(entry.clock_out) : "—" }}
+                {{ entry.clock_out ? formatDateTime(entry.clock_out) : "—" }}
               </td>
               <td>{{ entry.notes || "—" }}</td>
             </tr>
@@ -231,9 +232,19 @@ const lastEntry = computed(() => {
 });
 
 // Helpers
+function formatDateTime(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleString("es-ES", {
+    dateStyle: "short",
+    timeStyle: "medium",
+  });
+}
+
 function formatDate(value) {
   if (!value) return "";
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleDateString("es-ES", {
+    dateStyle: "short",
+  });
 }
 
 function humanStatus(status) {
