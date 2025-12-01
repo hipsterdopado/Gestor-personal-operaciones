@@ -162,11 +162,12 @@
               <th>Desde</th>
               <th>Hasta</th>
               <th>Estado</th>
+              <th>Mensaje</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="absence in absences" :key="absence.id">
-              <td>{{ t(`absence.type.${absence.type}`) }}</td>
+              <td>{{ formatAbsenceType(absence.type) }}</td>
               <td>{{ formatDate(absence.start_date) }}</td>
               <td>{{ formatDate(absence.end_date) }}</td>
               <td>
@@ -174,6 +175,7 @@
                   {{ humanStatus(absence.status) }}
                 </span>
               </td>
+              <td>{{ formatAbsenceMessage(absence) }}</td>
             </tr>
           </tbody>
         </table>
@@ -195,6 +197,31 @@ import { fetchMyAbsences, createAbsenceRequest } from "../services/absenceServic
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
+
+function formatAbsenceType(type) {
+  if (!type) return "";
+  const key = `absence.type.${type}`;
+  const translated = t(key);
+  // Si no hay traducción, vue-i18n devuelve la propia clave
+  return translated === key ? type : translated;
+}
+
+function formatAbsenceMessage(absence) {
+  if (!absence) return "";
+
+  const message =
+    absence.review_message ??
+    absence.manager_comment ??
+    absence.comment ??
+    absence.message ??
+    null;
+
+  if (!message || message.trim() === "") {
+    return "—";
+  }
+
+  return message;
+}
 
 const router = useRouter();
 const authStore = useAuthStore();
