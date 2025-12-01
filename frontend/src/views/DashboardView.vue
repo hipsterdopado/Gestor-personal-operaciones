@@ -49,10 +49,23 @@
           </p>
 
           <p class="small">
-            Horas trabajadas (últimos 7 días):
+            Horas trabajadas hoy:
             <br />
-            <strong>{{ formatHours(totalHoursLast7Days) }}</strong>
+            <strong>{{ formatHours(totalHoursToday) }}</strong>
           </p>
+
+          <p class="small">
+            Horas trabajadas esta semana:
+            <br />
+            <strong>{{ formatHours(totalHoursWeek) }}</strong>
+          </p>
+
+          <p class="small">
+            Horas trabajadas este mes:
+            <br />
+            <strong>{{ formatHours(totalHoursMonth) }}</strong>
+          </p>
+
         </template>
 
         <div class="actions">
@@ -186,6 +199,28 @@
           </tbody>
         </table>
       </article>
+      <!-- Histórico de horas mensuales -->
+      <article class="card full">
+        <h2>Histórico mensual de horas</h2>
+        <p v-if="monthlyHoursHistory.length === 0" class="small">
+          Aún no hay horas registradas
+                    </p>
+
+            <table v-else class="data-table">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th>Horas trabajadas</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in monthlyHoursHistory" :key="item.key">
+                  <td>{{ item.label }}</td>
+                  <td>{{ formatHours(item.hours) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </article>
     </section>
   </div>
 </template>
@@ -280,31 +315,89 @@ function formatDate(value) {
   });
 }
 
-const totalHoursLast7Days = computed(() => {
-  if (!timeEntries.value || timeEntries.value.length === 0) return 0;
+// --- Cálculo de horas trabajadas ---
 
+function diffHours(start, end) {
+  const ms = end.getTime() - start.getTime();
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  return ms / (1000 * 60 * 60);
+}
+
+const hoursSummary = computed(() => {
+  const entries = timeEntries.value || [];
   const now = new Date();
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(now.getDate() - 7);
 
-  let totalMs = 0;
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  for (const entry of timeEntries.value) {
+  // Lunes como inicio de semana
+  const weekDay = todayStart.getDay(); // 0 = domingo, 1 = lunes...
+  const diffToMonday = (weekDay + 6) % 7;
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(todayStart.getDate() - diffToMonday);
+
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  let today = 0;
+  let week = 0;
+  let month = 0;
+
+  const monthlyMap = new Map(); // key: YYYY-MM, value: horas
+
+  for (const entry of entries) {
     if (!entry.clock_in) continue;
 
     const start = new Date(entry.clock_in);
-    if (start < sevenDaysAgo) continue;
-
     const end = entry.clock_out ? new Date(entry.clock_out) : now;
-    const diff = end.getTime() - start.getTime();
+    const hours = diffHours(start, end);
+    if (hours === 0) continue;
 
-    if (diff > 0) {
-      totalMs += diff;
+    // Día actual (entrada que empieza hoy)
+    if (start >= todayStart) {
+      today += hours;
     }
+
+    // Semana actual
+    if (start >= weekStart) {
+      week += hours;
+    }
+
+    // Mes actual
+    if (start >= monthStart) {
+      month += hours;
+    }
+
+    // Histórico mensual
+    const ymKey = `${start.getFullYear()}-${String(
+      start.getMonth() + 1
+    ).padStart(2, "0")}`;
+    monthlyMap.set(ymKey, (monthlyMap.get(ymKey) || 0) + hours);
   }
 
-  return totalMs / (1000 * 60 * 60); 
+  const monthsHistory = Array.from(monthlyMap.entries())
+    .map(([key, hours]) => {
+      const [year, monthIndex] = key.split("-");
+      const date = new Date(Number(year), Number(monthIndex) - 1, 1);
+      const label = date.toLocaleDateString("es-ES", {
+        month: "long",
+        year: "numeric",
+      });
+      return { key, label, hours };
+    })
+    // Ordenar de más reciente a más antiguo
+    .sort((a, b) => b.key.localeCompare(a.key));
+
+  return {
+    today,
+    week,
+    month,
+    monthsHistory,
+  };
 });
+
+const totalHoursToday = computed(() => hoursSummary.value.today);
+const totalHoursWeek = computed(() => hoursSummary.value.week);
+const totalHoursMonth = computed(() => hoursSummary.value.month);
+const monthlyHoursHistory = computed(() => hoursSummary.value.monthsHistory);
 
 function formatHours(hours) {
   if (!Number.isFinite(hours) || hours <= 0) return "0 h";
