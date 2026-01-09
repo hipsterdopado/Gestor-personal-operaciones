@@ -41,11 +41,31 @@
             Último fichaje:
             <br />
             <strong>Entrada:</strong>
-            {{ formatDate(lastEntry.clock_in) }}
+            {{ formatDateTime(lastEntry.clock_in) }}
             <br />
             <strong>Salida:</strong>
-            {{ lastEntry.clock_out ? formatDate(lastEntry.clock_out) : "—" }}
+            {{ lastEntry.clock_out ? formatDateTime(lastEntry.clock_out) : "—" }}
+
           </p>
+
+          <p class="small">
+            Horas trabajadas hoy:
+            <br />
+            <strong>{{ formatHours(totalHoursToday) }}</strong>
+          </p>
+
+          <p class="small">
+            Horas trabajadas esta semana:
+            <br />
+            <strong>{{ formatHours(totalHoursWeek) }}</strong>
+          </p>
+
+          <p class="small">
+            Horas trabajadas este mes:
+            <br />
+            <strong>{{ formatHours(totalHoursMonth) }}</strong>
+          </p>
+
         </template>
 
         <div class="actions">
@@ -87,9 +107,9 @@
           </thead>
           <tbody>
             <tr v-for="entry in timeEntries.slice(0, 5)" :key="entry.id">
-              <td>{{ formatDate(entry.clock_in) }}</td>
+              <td>{{ formatDateTime(entry.clock_in) }}</td>
               <td>
-                {{ entry.clock_out ? formatDate(entry.clock_out) : "—" }}
+                {{ entry.clock_out ? formatDateTime(entry.clock_out) : "—" }}
               </td>
               <td>{{ entry.notes || "—" }}</td>
             </tr>
@@ -161,11 +181,12 @@
               <th>Desde</th>
               <th>Hasta</th>
               <th>Estado</th>
+              <th>Mensaje</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="absence in absences" :key="absence.id">
-              <td>{{ t(`absence.type.${absence.type}`) }}</td>
+              <td>{{ formatAbsenceType(absence.type) }}</td>
               <td>{{ formatDate(absence.start_date) }}</td>
               <td>{{ formatDate(absence.end_date) }}</td>
               <td>
@@ -173,10 +194,33 @@
                   {{ humanStatus(absence.status) }}
                 </span>
               </td>
+              <td>{{ formatAbsenceMessage(absence) }}</td>
             </tr>
           </tbody>
         </table>
       </article>
+      <!-- Histórico de horas mensuales -->
+      <article class="card full">
+        <h2>Histórico mensual de horas</h2>
+        <p v-if="monthlyHoursHistory.length === 0" class="small">
+          Aún no hay horas registradas
+                    </p>
+
+            <table v-else class="data-table">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th>Horas trabajadas</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in monthlyHoursHistory" :key="item.key">
+                  <td>{{ item.label }}</td>
+                  <td>{{ formatHours(item.hours) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </article>
     </section>
   </div>
 </template>
@@ -194,6 +238,31 @@ import { fetchMyAbsences, createAbsenceRequest } from "../services/absenceServic
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
+
+function formatAbsenceType(type) {
+  if (!type) return "";
+  const key = `absence.type.${type}`;
+  const translated = t(key);
+  // Si no hay traducción, vue-i18n devuelve la propia clave
+  return translated === key ? type : translated;
+}
+
+function formatAbsenceMessage(absence) {
+  if (!absence) return "";
+
+  const message =
+    absence.review_message ??
+    absence.manager_comment ??
+    absence.comment ??
+    absence.message ??
+    null;
+
+  if (!message || message.trim() === "") {
+    return "—";
+  }
+
+  return message;
+}
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -231,9 +300,115 @@ const lastEntry = computed(() => {
 });
 
 // Helpers
+function formatDateTime(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleString("es-ES", {
+    dateStyle: "short",
+    timeStyle: "medium",
+  });
+}
+
 function formatDate(value) {
   if (!value) return "";
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleDateString("es-ES", {
+    dateStyle: "short",
+  });
+}
+
+// --- Cálculo de horas trabajadas ---
+
+function diffHours(start, end) {
+  const ms = end.getTime() - start.getTime();
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  return ms / (1000 * 60 * 60);
+}
+
+const hoursSummary = computed(() => {
+  const entries = timeEntries.value || [];
+  const now = new Date();
+
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Lunes como inicio de semana
+  const weekDay = todayStart.getDay(); // 0 = domingo, 1 = lunes...
+  const diffToMonday = (weekDay + 6) % 7;
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(todayStart.getDate() - diffToMonday);
+
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  let today = 0;
+  let week = 0;
+  let month = 0;
+
+  const monthlyMap = new Map(); // key: YYYY-MM, value: horas
+
+  for (const entry of entries) {
+    if (!entry.clock_in) continue;
+
+    const start = new Date(entry.clock_in);
+    const end = entry.clock_out ? new Date(entry.clock_out) : now;
+    const hours = diffHours(start, end);
+    if (hours === 0) continue;
+
+    // Día actual (entrada que empieza hoy)
+    if (start >= todayStart) {
+      today += hours;
+    }
+
+    // Semana actual
+    if (start >= weekStart) {
+      week += hours;
+    }
+
+    // Mes actual
+    if (start >= monthStart) {
+      month += hours;
+    }
+
+    // Histórico mensual
+    const ymKey = `${start.getFullYear()}-${String(
+      start.getMonth() + 1
+    ).padStart(2, "0")}`;
+    monthlyMap.set(ymKey, (monthlyMap.get(ymKey) || 0) + hours);
+  }
+
+  const monthsHistory = Array.from(monthlyMap.entries())
+    .map(([key, hours]) => {
+      const [year, monthIndex] = key.split("-");
+      const date = new Date(Number(year), Number(monthIndex) - 1, 1);
+      const label = date.toLocaleDateString("es-ES", {
+        month: "long",
+        year: "numeric",
+      });
+      return { key, label, hours };
+    })
+    // Ordenar de más reciente a más antiguo
+    .sort((a, b) => b.key.localeCompare(a.key));
+
+  return {
+    today,
+    week,
+    month,
+    monthsHistory,
+  };
+});
+
+const totalHoursToday = computed(() => hoursSummary.value.today);
+const totalHoursWeek = computed(() => hoursSummary.value.week);
+const totalHoursMonth = computed(() => hoursSummary.value.month);
+const monthlyHoursHistory = computed(() => hoursSummary.value.monthsHistory);
+
+function formatHours(hours) {
+  if (!Number.isFinite(hours) || hours <= 0) return "0 h";
+
+  const rounded = Math.round(hours * 100) / 100;
+  return (
+    rounded.toLocaleString("es-ES", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }) + " h"
+  );
 }
 
 function humanStatus(status) {
